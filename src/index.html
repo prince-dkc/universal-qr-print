@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="output.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/lib/browser.min.js"></script>
+    <title>Document</title>
+
+    <!-- copied print / page CSS from index.html -->
+    <style>
+      @page {
+        /* size: A4; */
+        margin: 0;
+      }
+
+      body {
+        margin: 0;
+        /* padding-top:  30px; */
+        box-sizing: border-box;
+        font-family: sans-serif;
+      }
+
+      .page {
+        width: 2in;
+        height: 2in;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+      }
+
+      .row {
+        display: flex;
+        flex-direction: row;
+        height: 2in;
+        /* margin-bottom: 0.5in; */
+      }
+
+      .cell {
+        width: 2in;
+        height: 2in;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .cell img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      /* .gap {
+        width: 0.3in;
+        height: 2in;
+      } */
+
+      #uploader {
+        margin: 20px;
+      }
+      @media print {
+        .onprint {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="onprint flex w-screen min-h-screen p-6 bg-gray-100">
+      <div class="flex flex-col gap-6">
+        <div class="flex flex-col items-start gap-6">
+          <div class="flex gap-4">
+            <label for="qr-code"> QR Code </label>
+            <input
+              type="text"
+              id="qr-code"
+              placeholder="Enter a QR Code"
+              value=""
+              class="bg-gray-200 rounded px-2 py-1"
+            />
+            <button id="generate-qr" class="bg-sky-200 rounded px-2 py-1">
+              Generate QR
+            </button>
+            <span id="qr-validation-message" class="text-red-500"></span>
+          </div>
+          <div class="flex gap-4">
+            <label for="custom-text"> Custom Text </label>
+            <input
+              type="text"
+              id="custom-text"
+              value=""
+              placeholder="Enter custom text"
+              class="bg-gray-200 rounded px-2 py-1"
+            />
+          </div>
+          <div class="flex bg-gray-50 px-4 py-2">
+            <input
+              type="file"
+              id="qr-code-file"
+              accept=".xlsx, .xls, .csv"
+              class="px-2 py-1"
+            />
+            <button id="bulk-print-button" class="bg-sky-200 rounded px-2 py-1">
+              Print Bulk QR Codes
+            </button>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-3">
+          <h2>QR Codes</h2>
+          <div class="flex items-center gap-4">
+            <label for="qr-width">Width (in)</label>
+            <input
+              id="qr-width"
+              type="number"
+              step="0.1"
+              value="1.96"
+              class="bg-gray-200 rounded px-2 py-1 w-20"
+            />
+            <label for="qr-height">Height (in)</label>
+            <input
+              id="qr-height"
+              type="number"
+              step="0.1"
+              value="1.96"
+              class="bg-gray-200 rounded px-2 py-1 w-20"
+            />
+            <label for="per-row">Per row</label>
+            <input
+              id="per-row"
+              type="number"
+              min="1"
+              value="2"
+              class="bg-gray-200 rounded px-2 py-1 w-16"
+            />
+            <label for="quantity">Number of QR codes to print: </label>
+            <input
+              type="number"
+              id="quantity"
+              value="1"
+              class="bg-gray-200 rounded px-2 py-1"
+            />
+            <button
+              id="print-single-button"
+              class="bg-sky-200 rounded px-2 py-1"
+            >
+              Print
+            </button>
+          </div>
+
+          <div id="qr-codes">
+            <img id="qr-preview" class="w-32 h-32" alt="QR Code Preview" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- load app script after DOM -->
+    <script src="script.js"></script>
+  </body>
+</html>
