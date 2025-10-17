@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Create QR codes based on quantity
     for (let i = 0; i < qty; i++) {
       const qrContainer = document.createElement("div");
-    //   qrContainer.style.border = "1px solid #e5e7eb";
+      // qrContainer.style.border = "1px solid #e5e7eb";
 
       const img = document.createElement("img");
       img.src = lastImageUrl;
@@ -257,8 +257,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     @media print {
                         @page {
                             margin: 0;
-                            width: 4in;
-                            height: 2in;
+                            width: 3.93701in;
+                            height: 1in;
                          }
                         body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
                         img { max-width: 100%; height: auto; }
@@ -297,8 +297,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 <style>
                     @media print {
                         @page { margin: 0;
-                        width: 4in;
-                        height: 2in;
+                        width: 3.93701in;
+                        height: 1in;
                         }
                         body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
                         img {  }
