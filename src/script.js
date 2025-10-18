@@ -1,5 +1,11 @@
 const BASE_URL = "http://shivam-mac.local:3465/api/v1.0";
 
+const PAGE_SIZES = {
+  LARGE: { width: 100, height: 50 }, // 100mm x 50mm
+  MEDIUM: { width: 100, height: 25 }, // 100mm x 25mm
+  SMALL: { width: 25, height: 25 }, // 25mm x 25mm
+};
+
 document.addEventListener("DOMContentLoaded", () => {
   const fileInput = document.getElementById("qr-code-file");
   const printButton = document.getElementById("bulk-print-button");
@@ -9,12 +15,57 @@ document.addEventListener("DOMContentLoaded", () => {
   const validationMessage = document.getElementById("qr-validation-message");
   const qrPreview = document.getElementById("qr-preview");
 
+  let bulkGeneratedQRs = null;
+
   // Print Controls
   const widthInput = document.getElementById("qr-width");
   const heightInput = document.getElementById("qr-height");
   const perRowInput = document.getElementById("per-row");
   const quantityInput = document.getElementById("quantity");
   const printSingleButton = document.getElementById("print-single-button");
+  const pageSizeSelect = document.getElementById("page-size");
+  const testPrinterButton = document.getElementById("test-printer-button");
+
+  testPrinterButton.addEventListener("click", () => {
+    printWindow = window.open("", "_blank");
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <style>
+            @page {
+              margin: 0;
+              padding: 0;
+              width: 100mm;
+              height: 50mm;
+            }
+            body {
+              margin: 0;
+              padding: 0;
+              print-color-adjust: exact;
+              -webkit-print-color-adjust: exact;
+            }
+            img {
+              max-width: 100%;
+              width: 50mm;
+              height: 50mm;
+              display: block;
+            }
+          </style>
+        </head>
+        <body>
+          <img src="./assets/test_qr.png" alt="test" />
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+
+    printWindow.onload = () => {
+      printWindow.focus();
+      printWindow.print();
+    };
+  });
 
   console.log(qr_code);
 
@@ -29,10 +80,26 @@ document.addEventListener("DOMContentLoaded", () => {
   heightInput.addEventListener("input", updatePreview);
   perRowInput.addEventListener("input", updatePreview);
   quantityInput.addEventListener("input", updatePreview);
+  pageSizeSelect.addEventListener("change", updatePageSize);
 
   let lastImageUrl = null;
   let lastCode = "";
   let lastCustomText = "";
+
+  function updatePageSize() {
+    const selectedSize = PAGE_SIZES[pageSizeSelect.value];
+
+    // Update width/height inputs
+    widthInput.value = selectedSize.width;
+    heightInput.value = selectedSize.height;
+
+    // Update preview
+    if (bulkGeneratedQRs) {
+      updateBulkPreview();
+    } else {
+      updatePreview();
+    }
+  }
 
   function updatePreview() {
     const previewContainer = document.getElementById("qr-codes");
@@ -42,10 +109,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const qty = Math.max(1, parseInt(quantityInput?.value, 10) || 1);
     const hasCustomText = lastCustomText.trim() !== "";
-    const defaultWidth = hasCustomText ? "3.93in" : "1.96in";
+    const defaultWidth = hasCustomText ? "100" : "50";
+    const defaultHeight = hasCustomText ? "50" : "25";
     const defaultPerRow = hasCustomText ? 1 : 2;
-    const widthIn = parseFloat(widthInput?.value) || defaultWidth;
-    const heightIn = parseFloat(heightInput?.value) || "1.96in";
+    const widthMm = parseFloat(widthInput?.value) || defaultWidth;
+    const heightMm = parseFloat(heightInput?.value) || defaultHeight;
     const perRow = Math.max(
       1,
       parseInt(perRowInput?.value, 10) || defaultPerRow
@@ -57,7 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Create preview grid
     const grid = document.createElement("div");
     grid.style.display = "grid";
-    grid.style.gridTemplateColumns = `repeat(${perRow}, ${widthIn}in)`;
+    grid.style.gridTemplateColumns = `repeat(${perRow}, ${widthMm}mm)`;
     // grid.style.gap = "1rem";
     // grid.style.marginTop = "0.5mm";
     grid.style.marginLeft = "1mm";
@@ -72,8 +140,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const img = document.createElement("img");
       img.src = lastImageUrl;
       img.alt = lastCode;
-      img.style.width = `${widthIn}in`;
-      img.style.height = `${heightIn}in`;
+      img.style.width = `${widthMm}mm`;
+      img.style.height = `${heightMm}mm`;
 
       qrContainer.appendChild(img);
       grid.appendChild(qrContainer);
@@ -139,22 +207,24 @@ document.addEventListener("DOMContentLoaded", () => {
       lastCode = value;
       lastCustomText = custom_text.value || "";
 
-      const defaultWidth = hasCustomText ? "3.93" : "1.96";
+      printSingleButton.disabled = false;
+      quantityInput.disabled = false;
+
+      const defaultWidth = hasCustomText ? "100" : "50";
       widthInput.value = defaultWidth;
 
-      const defaultPerRow = hasCustomText ? 1 : 2;
-      perRowInput.value = defaultPerRow;
+      perRowInput.value = hasCustomText ? 1 : 2;
 
       // Update height to match width for QR without text
       if (!hasCustomText) {
-        heightInput.value = "1.96";
+        heightInput.value = "50";
       }
 
       // Update QR preview using the blob URL
       if (qrPreview) {
         qrPreview.src = lastImageUrl;
-        qrPreview.style.width = `${defaultWidth}in`;
-        qrPreview.style.height = `${heightInput.value}in`;
+        qrPreview.style.width = `${defaultWidth}mm`;
+        qrPreview.style.height = `${heightInput.value}mm`;
       }
 
       updatePreview();
@@ -168,19 +238,160 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function handleBulkPrint() {
-    const file = fileInput.files[0];
-    if (!file) {
-      alert("Please select a file first");
-      return;
+    try {
+      // If QRs are already generated, proceed to print
+      if (bulkGeneratedQRs) {
+        createPrintView(bulkGeneratedQRs);
+        return;
+      }
+
+      const file = fileInput.files[0];
+      if (!file) {
+        alert("Please select a file first");
+        return;
+      }
+
+      const withCustomText =
+        document.getElementById("with-custom-text").checked;
+
+      const data = await readFile(file);
+
+      // validate required columns
+      if (!validateColumns(data)) {
+        alert("File must contain columns: 'QR Code', 'Quantity'");
+        return;
+      }
+
+      printButton.textContent = "Generating...";
+      printButton.disabled = true;
+
+      const processedData = await Promise.all(
+        data.map(async (row) => {
+          // Generate QR from API
+          const res = await fetch(
+            `${BASE_URL}/qr-m2m/create-qr-without-db-save/`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                code: row["QR Code"],
+                qr_without_text: !withCustomText,
+                text_content: row["Custom Text"] || "",
+              }),
+            }
+          );
+
+          if (!res) {
+            throw new Error(
+              `Failed to generate QR for code: ${row["QR Code"]}`
+            );
+          }
+
+          const blob = await res.blob();
+          return {
+            ...row,
+            imageUrl: URL.createObjectURL(blob),
+            hasCustomText: withCustomText,
+          };
+        })
+      );
+
+      bulkGeneratedQRs = processedData;
+
+      printButton.textContent = "Print Bulk QR Codes";
+      printButton.disabled = false;
+      printSingleButton.disabled = true;
+      quantityInput.disabled = true;
+
+      updateBulkPreview();
+    } catch (error) {
+      console.error("Error processing bulk print:", error);
+      alert("Error processing bulk print");
+      printButton.textContent = "Generate Bulk QR";
+      printButton.disabled = false;
+      quantityInput.disabled = false;
+      printSingleButton.disabled = false;
     }
+  }
 
-    const data = await readFile(file);
+  function updateBulkPreview() {
+    const previewContainer = document.getElementById("qr-codes");
+    if (!bulkGeneratedQRs) return;
 
-    const widthIn = parseFloat(widthInput?.value) || "1.96in";
-    const heightIn = parseFloat(heightInput?.value) || "1.96in";
-    const perRow = Math.max(1, parseInt(perRowInput?.value, 10) || 2);
+    // Clear previous preview
+    previewContainer.innerHTML = "";
+    const withCustomText = document.getElementById("with-custom-text").checked;
 
-    createPrintView(data, { widthIn, heightIn, perRow });
+    const selectedSize = PAGE_SIZES[pageSizeSelect.value];
+    const grid = document.createElement("div");
+    grid.style.display = "grid";
+    const defaultPerRow = withCustomText ? 1 : 2;
+    const perRow = parseInt(perRowInput.value) || defaultPerRow;
+    grid.style.gridTemplateColumns = `repeat(${perRow}, auto)`;
+    grid.style.width = `${selectedSize.width}mm`;
+    grid.style.height = `${selectedSize.height}mm`;
+
+    bulkGeneratedQRs.forEach((row) => {
+      const quantity = parseInt(row.Quantity) || 1;
+      const width = row.hasCustomText ? "100mm" : "50mm";
+      const height = "50mm";
+
+      for (let i = 0; i < quantity; i++) {
+        const qrContainer = document.createElement("div");
+        qrContainer.style.display = "flex";
+        qrContainer.style.flexDirection = "column";
+        qrContainer.style.alignItems = "center";
+
+        const img = document.createElement("img");
+        img.src = row.imageUrl;
+        img.style.width = width;
+        img.style.height = height;
+        img.style.objectFit = "contain";
+
+        qrContainer.appendChild(img);
+        grid.appendChild(qrContainer);
+      }
+    });
+
+    previewContainer.appendChild(grid);
+  }
+
+  // Update event listeners for controls to handle bulk preview
+  widthInput.addEventListener("input", () => {
+    if (bulkGeneratedQRs) {
+      updateBulkPreview();
+    } else {
+      updatePreview();
+    }
+  });
+  heightInput.addEventListener("input", () => {
+    if (bulkGeneratedQRs) {
+      updateBulkPreview();
+    } else {
+      updatePreview();
+    }
+  });
+  perRowInput.addEventListener("input", () => {
+    if (bulkGeneratedQRs) {
+      updateBulkPreview();
+    } else {
+      updatePreview();
+    }
+  });
+
+  // Add file input change handler to reset state
+  fileInput.addEventListener("change", () => {
+    bulkGeneratedQRs = null;
+    printButton.textContent = "Generate Bulk QR";
+    previewContainer.innerHTML = "";
+  });
+
+  function validateColumns(data) {
+    if (!data || !data.length) return false;
+    const firstRow = data[0];
+    return ["QR Code", "Quantity"].every((col) => col in firstRow);
   }
 
   function readFile(file) {
@@ -200,68 +411,103 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  async function createPrintView(data, options = {}) {
-    const widthIn =
-      options.widthIn || parseFloat(widthInput?.value) || "1.96in";
-    const heightIn =
-      options.heightIn || parseFloat(heightInput?.value) || "1.96in";
-    const perRow =
-      options.perRow || Math.max(1, parseInt(perRowInput?.value, 10) || 2);
-
+  async function createPrintView(data) {
+    const selectedSize = PAGE_SIZES[pageSizeSelect.value];
     const printContainer = document.createElement("div");
-    printContainer.className = "grid";
     printContainer.style.display = "grid";
-    printContainer.style.gridTemplateColumns = `repeat(${perRow}, 1fr)`;
-    // printContainer.style.gap = "0.5in";
+    printContainer.style.gap = "0";
+    printContainer.style.margin = "0";
+    printContainer.style.padding = "0";
+
+    let currentRow = document.createElement("div");
+    currentRow.style.display = "flex";
+    currentRow.style.flexDirection = "row";
+    currentRow.style.margin = "0";
+    currentRow.style.padding = "0";
+
+    let itemsInCurrentRow = 0;
 
     for (const row of data) {
-      const quantity = row.Quantity || 1;
+      const quantity = parseInt(row.Quantity) || 1;
+      const width = row.hasCustomText ? "100mm" : "50mm";
+      const height = "50mm";
+      const perRow = row.hasCustomText ? 1 : 2;
+
       for (let i = 0; i < quantity; i++) {
+        if (itemsInCurrentRow >= perRow) {
+          printContainer.appendChild(currentRow);
+          currentRow = document.createElement("div");
+          currentRow.style.display = "flex";
+          currentRow.style.flexDirection = "row";
+          currentRow.style.margin = "0";
+          currentRow.style.padding = "0";
+          itemsInCurrentRow = 0;
+        }
+
         const qrContainer = document.createElement("div");
-        qrContainer.className = "flex flex-col items-center";
+        qrContainer.style.width = width;
+        qrContainer.style.height = height;
         qrContainer.style.display = "flex";
         qrContainer.style.flexDirection = "column";
         qrContainer.style.alignItems = "center";
+        qrContainer.style.justifyContent = "center";
+        qrContainer.style.margin = "0";
+        qrContainer.style.padding = "0";
 
-        // Create img element instead of canvas
-        const qrImg = document.createElement("img");
-        // Generate QR code as Data URL
-        const qrUrl = await QRCode.toDataURL(row["QR code"] || "", {
-          width: Math.round(widthIn),
-          height: Math.round(heightIn),
-        });
-        qrImg.src = qrUrl;
-        qrImg.alt = "QR Code";
-        qrImg.style.width = `${widthIn}in`;
-        qrImg.style.height = `${heightIn}in`;
-        qrImg.style.objectFit = "contain";
+        const img = document.createElement("img");
+        img.src = row.imageUrl;
+        img.style.width = "100%";
+        img.style.height = "100%";
+        img.style.objectFit = "contain";
 
-        const textElement = document.createElement("p");
-        textElement.className = " text-center";
-        textElement.textContent = row["Custom Text"] || "";
-        lastCustomText = row["Custom Text"] || "";
-
-        qrContainer.appendChild(qrImg);
-        qrContainer.appendChild(textElement);
-        printContainer.appendChild(qrContainer);
+        qrContainer.appendChild(img);
+        currentRow.appendChild(qrContainer);
+        itemsInCurrentRow++;
       }
     }
 
-    // Create a new window for printing
+    if (itemsInCurrentRow > 0) {
+      printContainer.appendChild(currentRow);
+    }
+
     const printWindow = window.open("", "_blank");
     printWindow.document.write(`
         <html>
             <head>
-                <link rel="stylesheet" href="output.css">
                 <style>
-                    @media print {
-                        @page {
-                            margin: 0;
-                            width: 3.93701in;
-                            height: 1in;
-                         }
-                        body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-                        img { max-width: 100%; height: auto; }
+                    @page {
+                        margin: 0;
+                        padding: 0;
+                        width: ${selectedSize.width}mm;
+                        height: ${selectedSize.height}mm;
+                    }
+                    body {
+                        margin: 0;
+                        padding: 0;
+                        print-color-adjust: exact;
+                        -webkit-print-color-adjust: exact;
+                    }
+                    img {
+                        max-width: 100%;
+                        height: auto;
+                        display: block;
+                    }
+                    .row {
+                        display: flex;
+                        flex-direction: row;
+                        margin: 0;
+                        padding: 0;
+                        height: ${selectedSize.height}mm;
+                    }
+                    .qr-container {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 0;
+                        padding: 0;
+                        width: ${selectedSize.width / 2}mm;
+                        height: ${selectedSize.height}mm;
                     }
                 </style>
             </head>
@@ -272,6 +518,15 @@ document.addEventListener("DOMContentLoaded", () => {
     `);
 
     printWindow.document.close();
+
+    // Clean up object URLs after printing
+    printWindow.onafterprint = () => {
+      data.forEach((row) => {
+        if (row.imageUrl) {
+          URL.revokeObjectURL(row.imageUrl);
+        }
+      });
+    };
 
     printWindow.onload = () => {
       printWindow.focus();
@@ -285,7 +540,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Get current preview container's content
+    const selectedSize = PAGE_SIZES[pageSizeSelect.value];
     const previewContainer = document.getElementById("qr-codes");
 
     // Create print window with current preview layout
@@ -297,11 +552,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 <style>
                     @media print {
                         @page { margin: 0;
-                        width: 3.93701in;
-                        height: 1in;
+                        width: ${selectedSize.width}mm;
+                        height: ${selectedSize.height}mm;
                         }
                         body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-                        img {  }
+                        img { 
+                            max-width: 100%;
+                            height: 100%;
+                            object-fit: contain;
+                        }
                     }
                     body { margin: 0; padding: 0; }
                 </style>

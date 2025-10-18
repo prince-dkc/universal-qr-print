@@ -23,8 +23,8 @@
       }
 
       .page {
-        width: 2in;
-        height: 2in;
+        width: 100mm;
+        height: 50mm;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
@@ -34,13 +34,13 @@
       .row {
         display: flex;
         flex-direction: row;
-        height: 2in;
+        height: 50mm;
         /* margin-bottom: 0.5in; */
       }
 
       .cell {
-        width: 2in;
-        height: 2in;
+        width: 50mm;
+        height: 50mm;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -70,61 +70,146 @@
   <body>
     <div class="onprint flex w-screen min-h-screen p-6 bg-gray-100">
       <div class="flex flex-col gap-6">
-        <div class="flex flex-col items-start gap-6">
-          <div class="flex gap-4">
-            <label for="qr-code"> QR Code </label>
-            <input
-              type="text"
-              id="qr-code"
-              placeholder="Enter a QR Code"
-              value=""
-              class="bg-gray-200 rounded px-2 py-1"
-            />
-            <button id="generate-qr" class="bg-sky-200 rounded px-2 py-1">
-              Generate QR
-            </button>
-            <span id="qr-validation-message" class="text-red-500"></span>
+        <!-- QR Generation -->
+        <div class="flex justify-between items-start gap-6">
+          <!-- Single QR Generation -->
+          <div class="flex gap-4 bg-gray-50 px-4 py-2">
+            <div class="flex flex-col gap-2">
+              <div class="flex justify-between gap-4">
+                <label for="qr-code"> QR Code </label>
+                <input
+                  type="text"
+                  id="qr-code"
+                  placeholder="Enter a QR Code"
+                  value=""
+                  class="bg-gray-200 rounded px-2 py-1"
+                />
+              </div>
+              <div class="flex gap-4">
+                <label for="custom-text"> Custom Text </label>
+                <input
+                  type="text"
+                  id="custom-text"
+                  value=""
+                  placeholder="Enter custom text"
+                  class="bg-gray-200 rounded px-2 py-1"
+                />
+              </div>
+              <button
+                id="generate-qr"
+                class="bg-sky-200 self-end w-max rounded px-2 py-1"
+              >
+                Generate QR
+              </button>
+              <span
+                id="qr-validation-message"
+                class="text-red-500 text-center"
+              ></span>
+            </div>
+
+            <!-- Single QR Instructions -->
+            <div class="text-red-400">
+              <span>Instructions</span>
+              <ul class="list-disc list-inside">
+                <li>Enter a QR code</li>
+                <li>Enter custom text (optional)</li>
+                <li>Click "Generate QR" to generate QR</li>
+                <li>Click "Print" to print QR</li>
+              </ul>
+            </div>
           </div>
-          <div class="flex gap-4">
-            <label for="custom-text"> Custom Text </label>
-            <input
-              type="text"
-              id="custom-text"
-              value=""
-              placeholder="Enter custom text"
-              class="bg-gray-200 rounded px-2 py-1"
-            />
-          </div>
-          <div class="flex bg-gray-50 px-4 py-2">
-            <input
-              type="file"
-              id="qr-code-file"
-              accept=".xlsx, .xls, .csv"
-              class="px-2 py-1"
-            />
-            <button id="bulk-print-button" class="bg-sky-200 rounded px-2 py-1">
-              Print Bulk QR Codes
-            </button>
+
+          <!-- Bulk QR Generation -->
+          <div class="flex gap-4 bg-gray-50 px-4 py-2">
+            <div class="flex flex-col gap-2">
+              <input
+                type="file"
+                id="qr-code-file"
+                accept=".xlsx, .xls, .csv"
+                class="px-2 py-1"
+              />
+              <div class="flex items-center gap-2">
+                <input
+                  type="radio"
+                  id="with-custom-text"
+                  value="with-custom-text"
+                  name="qr-type"
+                />
+                <label for="with-custom-text">With Custom Text</label>
+              </div>
+              <div class="flex items-center gap-2">
+                <input
+                  type="radio"
+                  id="without-custom-text"
+                  value="without-custom-text"
+                  name="qr-type"
+                />
+                <label for="without-custom-text">Without Custom Text</label>
+              </div>
+              <button
+                id="bulk-print-button"
+                class="bg-sky-200 rounded px-2 py-1"
+              >
+                Generate Bulk QR
+              </button>
+            </div>
+
+            <!-- Bulk QR Instructions -->
+            <div class="text-red-400">
+              <span>Instructions</span>
+              <ul class="list-disc list-inside">
+                <li>Select a file containing QR codes</li>
+                <li>Select QR type (with or without custom text)</li>
+                <li>The order of QR codes will be same as in the file</li>
+                <li>Click "Generate Bulk QR" to generate QRs</li>
+                <li>Click "Print Bulk QR" to print QRs</li>
+              </ul>
+            </div>
           </div>
         </div>
 
+        <!-- QR Code Previews -->
         <div class="flex flex-col gap-3">
+          <div>
+            <p>Tools & Tutorials for printer setup</p>
+            <button
+              onclick="document.getElementById('setup-modal').classList.remove('hidden')"
+              class="bg-sky-200 px-2 py-1 rounded"
+            >
+              Open Setup Guide
+            </button>
+          </div>
+
+          <button
+            class="bg-sky-200 w-max px-2 py-1 rounded"
+            id="test-printer-button"
+          >
+            Test Printer
+          </button>
           <h2>QR Codes</h2>
+          <div>
+            <label for="page-size">Page Size</label>
+            <select id="page-size" class="bg-gray-200 rounded px-2 py-1">
+              <option value="LARGE">100mm x 50mm</option>
+              <option value="MEDIUM">100mm x 25mm</option>
+              <option value="SMALL">25mm x 25mm</option>
+            </select>
+          </div>
           <div class="flex items-center gap-4">
-            <label for="qr-width">Width (in)</label>
+            <label for="qr-width">Width (mm)</label>
             <input
               id="qr-width"
               type="number"
               step="0.1"
-              value="1.96"
+              value="50"
               class="bg-gray-200 rounded px-2 py-1 w-20"
             />
-            <label for="qr-height">Height (in)</label>
+            <label for="qr-height">Height (mm)</label>
             <input
               id="qr-height"
               type="number"
               step="0.1"
-              value="1.96"
+              value="50"
               class="bg-gray-200 rounded px-2 py-1 w-20"
             />
             <label for="per-row">Per row</label>
@@ -139,19 +224,149 @@
             <input
               type="number"
               id="quantity"
-              value="1"
-              class="bg-gray-200 rounded px-2 py-1"
+              value="2"
+              class="bg-gray-200 rounded px-2 py-1 disabled:cursor-not-allowed"
             />
             <button
               id="print-single-button"
-              class="bg-sky-200 rounded px-2 py-1"
+              disabled
+              class="bg-sky-200 rounded px-2 py-1 disabled:hidden"
             >
               Print
             </button>
           </div>
 
           <div id="qr-codes">
-            <img id="qr-preview" class="w-32 h-32" alt="QR Code Preview" />
+            <img
+              id="qr-preview"
+              class="w-[50mm] h-[50mm] border border-gray-300"
+              alt="QR Code Preview"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Printer Setup Modal -->
+    <div
+      id="setup-modal"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+    >
+      <div
+        class="bg-white rounded-lg p-6 w-[800px] max-h-[80vh] overflow-y-auto"
+      >
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold">Printer Setup Guide</h2>
+          <button
+            onclick="document.getElementById('setup-modal').classList.add('hidden')"
+            class="text-gray-500 hover:text-gray-700"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div class="space-y-6">
+          <!-- Tools Section -->
+          <div>
+            <h3 class="text-lg font-semibold mb-2">Download Tools</h3>
+            <ul class="space-y-2">
+              <li>
+                <a
+                  href="./assets/TSC.zip"
+                  class="flex items-center gap-2 text-blue-600 hover:underline"
+                  download
+                >
+                  <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
+                  </svg>
+                  TSC Setup Utilities
+                </a>
+              </li>
+              <li>
+                <a
+                  href="./assets//TSC.zip"
+                  class="flex items-center gap-2 text-blue-600 hover:underline"
+                  download
+                >
+                  <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
+                  </svg>
+                  Printer Drivers Package
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Video Tutorials Section -->
+          <div>
+            <h3 class="text-lg font-semibold mb-2">Video Tutorials</h3>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <div class="aspect-video bg-gray-100">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src="https://www.youtube.com/embed/your-video-id"
+                    frameborder="0"
+                    allowfullscreen
+                  >
+                  </iframe>
+
+                  <!-- <video
+                    width="100%"
+                    height="100%"
+                    controls
+                    src="https://www.example.com/your-video-file.mp4"
+                  ></video> -->
+                </div>
+                <p class="font-medium">Initial Printer Setup</p>
+              </div>
+              <div class="space-y-2">
+                <div class="aspect-video bg-gray-100">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src="https://www.youtube.com/embed/your-video-id"
+                    frameborder="0"
+                    allowfullscreen
+                  ></iframe>
+                </div>
+                <p class="font-medium">Troubleshooting Guide</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Setup Instructions -->
+          <div>
+            <h3 class="text-lg font-semibold mb-2">Quick Setup Steps</h3>
+            <ol class="list-decimal list-inside space-y-2">
+              <li>Download and install TSC Setup Utilities</li>
+              <li>Install printer drivers from the package</li>
+              <li>Connect your printer via USB or network</li>
+              <li>Run TSC Setup Utilities and add your printer</li>
+              <li>Set paper size to match your labels</li>
+              <li>Print a test page to verify setup</li>
+            </ol>
           </div>
         </div>
       </div>
