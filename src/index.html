@@ -161,6 +161,15 @@
                 <li>Select a file containing QR codes</li>
                 <li>Select QR type (with or without custom text)</li>
                 <li>The order of QR codes will be same as in the file</li>
+                <li>
+                  Example file format:
+                  <a
+                    href="./assets/qr_test.xlsx"
+                    target="_blank"
+                    class="text-blue-400 underline"
+                    >qr_test.xlsx</a
+                  >
+                </li>
                 <li>Click "Generate Bulk QR" to generate QRs</li>
                 <li>Click "Print Bulk QR" to print QRs</li>
               </ul>
@@ -186,6 +195,16 @@
           >
             Test Printer
           </button>
+
+          <button
+            id="open-print-button"
+            onclick="document.getElementById('qr-detail-modal').classList.remove('hidden')"
+            disabled
+            class="bg-sky-200 w-max px-2 py-1 rounded disabled:hidden"
+          >
+            Open Print
+          </button>
+
           <h2>QR Codes</h2>
           <div>
             <label for="page-size">Page Size</label>
@@ -250,7 +269,7 @@
     <!-- Printer Setup Modal -->
     <div
       id="setup-modal"
-      class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+      class="hidden fixed inset-0 bg-black/50 flex items-center justify-center"
     >
       <div
         class="bg-white rounded-lg p-6 w-[800px] max-h-[80vh] overflow-y-auto"
@@ -368,6 +387,77 @@
               <li>Print a test page to verify setup</li>
             </ol>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Print QR Details Modal -->
+    <div
+      id="qr-detail-modal"
+      class="fixed inset-0 hidden flex items-center justify-center bg-black/50 z-50"
+    >
+      <div class="bg-white p-6 rounded shadow-xl w-[90%] max-w-5xl">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold">QR Details</h2>
+          <button
+            onclick="document.getElementById('qr-detail-modal').classList.add('hidden')"
+            class="text-gray-500 hover:text-gray-700"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- Dynamic column selector -->
+        <div class="mb-4 flex items-center gap-4">
+          <label for="column-select" class="font-medium">Add Columns:</label>
+          <select
+            id="column-select"
+            class="border rounded min-w-32 px-2 py-1"
+            multiple
+          ></select>
+          <button
+            id="apply-columns"
+            class="bg-blue-500 text-white px-3 py-1 rounded"
+          >
+            Apply
+          </button>
+          <button
+            id="download-table"
+            class="bg-green-600 text-white px-3 py-1 rounded ml-auto"
+          >
+            Download CSV
+          </button>
+        </div>
+
+        <!-- Table container -->
+        <div class="overflow-x-auto max-h-[60vh]">
+          <table
+            id="qr-detail-table"
+            class="min-w-full border border-gray-300 text-sm"
+          >
+            <thead class="bg-gray-100 sticky top-0 z-10">
+              <tr id="table-head-row"></tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </div>
+
+        <div class="flex justify-end gap-4 pt-4 mt-4 border-t">
+          <button
+            id="close-qr-detail-modal"
+            onclick="document.getElementById('qr-detail-modal').classList.add('hidden')"
+            class="bg-gray-500 text-white px-4 py-2 rounded"
+          >
+            Close
+          </button>
+          <button
+            id="print-qr-detail"
+            onclick="printQRModalTable()"
+            disabled
+            class="bg-sky-500 text-white px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Print
+          </button>
         </div>
       </div>
     </div>
