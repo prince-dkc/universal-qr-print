@@ -260,8 +260,13 @@ async function handleBulkPrint() {
     }
 
     const withCustomText = document.getElementById("with-custom-text").checked;
-
     const data = await readFile(file);
+
+    if (data.length > 500) {
+      return alert(
+        `⚠️ The uploaded file contains ${data.length} rows.\nOnly up to 500 rows are allowed.`
+      );
+    }
 
     // validate required columns
     if (!validateColumns(data)) {
@@ -858,4 +863,3 @@ function printQRModalTable() {
     printWindow.print();
   };
 }
-
