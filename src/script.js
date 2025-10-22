@@ -6,7 +6,6 @@ const PAGE_SIZES = {
   SMALL: { width: 25, height: 25 }, // 25mm x 25mm
 };
 
-// document.addEventListener("DOMContentLoaded", () => {
 const fileInput = document.getElementById("qr-code-file");
 const printButton = document.getElementById("bulk-print-button");
 const qr_code = document.getElementById("qr-code");
@@ -860,4 +859,3 @@ function printQRModalTable() {
   };
 }
 
-// });
