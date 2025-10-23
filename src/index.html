@@ -52,6 +52,16 @@
         object-fit: contain;
       }
 
+      th {
+        position: relative;
+      }
+
+      .sort-icon {
+        font-size: 1rem;
+        margin-left: 4px;
+        font-weight: bold;
+      }
+
       /* .gap {
         width: 0.3in;
         height: 2in;
@@ -97,7 +107,7 @@
               </div>
               <button
                 id="generate-qr"
-                class="bg-sky-200 self-end w-max rounded px-2 py-1"
+                class="bg-sky-200 self-end w-max rounded px-2 py-1 disabled:cursor-not-allowed"
               >
                 Generate QR
               </button>
@@ -134,6 +144,7 @@
                   id="with-custom-text"
                   value="with-custom-text"
                   name="qr-type"
+                  checked
                 />
                 <label for="with-custom-text">With Custom Text</label>
               </div>
@@ -147,8 +158,8 @@
                 <label for="without-custom-text">Without Custom Text</label>
               </div>
               <button
-                id="bulk-print-button"
-                class="bg-sky-200 rounded px-2 py-1"
+                id="bulk-generate-button"
+                class="bg-sky-200 rounded px-2 py-1 disabled:cursor-not-allowed"
               >
                 Generate Bulk QR
               </button>
@@ -179,18 +190,24 @@
 
         <!-- QR Code Previews -->
         <div class="flex flex-col gap-3">
+          <button
+            id="reset-button"
+            class="bg-red-400 w-max px-2 py-1 rounded disabled:cursor-not-allowed"
+          >
+            Reset All
+          </button>
           <div>
             <p>Tools & Tutorials for printer setup</p>
             <button
               onclick="document.getElementById('setup-modal').classList.remove('hidden')"
-              class="bg-sky-200 px-2 py-1 rounded"
+              class="bg-sky-200 px-2 py-1 rounded disabled:cursor-not-allowed"
             >
               Open Setup Guide
             </button>
           </div>
 
           <button
-            class="bg-sky-200 w-max px-2 py-1 rounded"
+            class="bg-sky-200 w-max px-2 py-1 rounded disabled:cursor-not-allowed"
             id="test-printer-button"
           >
             Test Printer
@@ -202,7 +219,7 @@
             disabled
             class="bg-sky-200 w-max px-2 py-1 rounded disabled:hidden"
           >
-            Open Print
+            A4 Print
           </button>
 
           <h2>QR Codes</h2>
@@ -247,9 +264,8 @@
               class="bg-gray-200 rounded px-2 py-1 disabled:cursor-not-allowed"
             />
             <button
-              id="print-single-button"
-              disabled
-              class="bg-sky-200 rounded px-2 py-1 disabled:hidden"
+              id="print-button"
+              class="bg-sky-200 rounded px-2 py-1 disabled:cursor-not-allowed"
             >
               Print
             </button>

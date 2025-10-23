@@ -29,8 +29,8 @@ export function showQRDetailModal(data) {
   columnSelect.innerHTML = "";
   allCsvColumns.forEach((col) => {
     const option = document.createElement("option");
-    option.value = col;
-    option.textContent = col;
+    option.value = col.toLowerCase().replace(/ /g, "_");
+    option.textContent = col.toUpperCase().replace(/_/g, " ");
     columnSelect.appendChild(option);
   });
 
@@ -132,17 +132,84 @@ function updatePrintButtonState() {
 }
 
 let sortDirection = {};
-function sortTableByColumn(column, data) {
-  sortDirection[column] = !sortDirection[column];
+function sortTableByColumn(primaryColumn, data) {
+  // Toggle the primary column's sort direction
+  sortDirection[primaryColumn] = !sortDirection[primaryColumn];
+
+  // Define columns to sort by priority
+  // Always put primary first, then secondary by predefined order or remaining columns
+  const allColumns = Object.keys(data[0] || {}).filter(
+    (col) =>
+      ![
+        "qr_code",
+        "quantity",
+        "custom_text",
+        "imageUrl",
+        "hasCustomText",
+      ].includes(col)
+  );
+
+  // Primary column first
+  const priorityColumns = [
+    primaryColumn,
+    ...allColumns.filter((c) => c !== primaryColumn),
+  ];
+
   data.sort((a, b) => {
-    const valA = a[column] ?? "";
-    const valB = b[column] ?? "";
-    return sortDirection[column]
-      ? String(valA).localeCompare(String(valB))
-      : String(valB).localeCompare(String(valA));
+    for (const col of priorityColumns) {
+      let valA = a[col] ?? "";
+      let valB = b[col] ?? "";
+
+      const isPureNumber =
+        /^\d+(\.\d+)?$/.test(valA) && /^\d+(\.\d+)?$/.test(valB);
+
+      let comparison = 0;
+
+      if (isPureNumber) {
+        comparison = parseFloat(valA) - parseFloat(valB);
+      } else {
+        // Fallback: alphanumeric string comparison with numeric support
+        comparison = String(valA).localeCompare(String(valB), undefined, {
+          numeric: true,
+          sensitivity: "base",
+        });
+      }
+
+      if (comparison !== 0) {
+        // Apply primary column direction only for primary
+        return col === primaryColumn
+          ? sortDirection[primaryColumn]
+            ? comparison
+            : -comparison
+          : comparison;
+      }
+    }
+    return 0; // fully equal
   });
 
   renderTable(data);
+
+  updateSortIcons(primaryColumn);
+}
+
+function updateSortIcons(sortedColumn) {
+  const headers = tableHeadRow.querySelectorAll("th");
+
+  headers.forEach((th) => {
+    // Remove existing icon first
+    const existingIcon = th.querySelector(".sort-icon");
+    if (existingIcon) existingIcon.remove();
+
+    const col = th.dataset.column;
+    if (!col) return;
+
+    if (col === sortedColumn) {
+      const icon = document.createElement("span");
+      icon.className = "sort-icon";
+      icon.textContent = sortDirection[sortedColumn] ? "↑" : "↓";
+      th.appendChild(icon);
+    }
+  });
 }
 
 export function printQRModalTable() {

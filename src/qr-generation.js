@@ -1,16 +1,17 @@
 // qr-generation.js
-import { updateBulkPreview } from "./bulk-print.js";
+import { createPrintView, updateBulkPreview } from "./bulk-print.js";
 import { BASE_URL, PAGE_SIZES } from "./constants.js";
 import {
+  A4PrintButton,
   bulkGeneratedQRs,
   custom_text,
   heightInput,
   pageSizeSelect,
   perRowInput,
-  printSingleButton,
   qr_code,
   qrPreview,
   quantityInput,
+  updateBulkGeneratedQRs,
   validationMessage,
   widthInput,
 } from "./main.js";
@@ -38,7 +39,6 @@ export function validateQRInput() {
 }
 
 export async function createQR() {
-  console.log("createQR called");
   try {
     const value = qr_code.value.trim();
     const hasCustomText = custom_text.value.trim() !== "";
@@ -76,7 +76,7 @@ export async function createQR() {
     lastCode = value;
     lastCustomText = custom_text.value || "";
 
-    printSingleButton.disabled = false;
+    // printSingleButton.disabled = false;
     quantityInput.disabled = false;
 
     const defaultWidth = hasCustomText ? "100" : "50";
@@ -97,6 +97,8 @@ export async function createQR() {
     }
 
     updatePreview();
+    updateBulkGeneratedQRs(null);
+    A4PrintButton.disabled = true;
 
     validationMessage.textContent = "";
   } catch (error) {
@@ -168,8 +170,13 @@ export function updatePageSize() {
 }
 
 export function printSingle() {
-  if (!lastImageUrl) {
-    validationMessage.textContent = "Generate a QR first";
+  // if (!lastImageUrl) {
+  //   validationMessage.textContent = "Generate a QR first";
+  //   return;
+  // }
+
+  if (bulkGeneratedQRs) {
+    createPrintView(bulkGeneratedQRs);
     return;
   }
 

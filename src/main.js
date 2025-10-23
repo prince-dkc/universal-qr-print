@@ -11,7 +11,9 @@ export { BASE_URL, PAGE_SIZES } from "./constants.js";
 
 export const previewContainer = document.getElementById("qr-codes");
 export const fileInput = document.getElementById("qr-code-file");
-export const printButton = document.getElementById("bulk-print-button");
+export const bulkGenerateButton = document.getElementById(
+  "bulk-generate-button"
+);
 export const qr_code = document.getElementById("qr-code");
 export const custom_text = document.getElementById("custom-text");
 export const generateButton = document.getElementById("generate-qr");
@@ -19,6 +21,7 @@ export const validationMessage = document.getElementById(
   "qr-validation-message"
 );
 export const qrPreview = document.getElementById("qr-preview");
+export const A4PrintButton = document.getElementById("open-print-button");
 
 // QR Details Modal Logic
 export const qrDetailModal = document.getElementById("qr-detail-modal");
@@ -54,7 +57,7 @@ export const widthInput = document.getElementById("qr-width");
 export const heightInput = document.getElementById("qr-height");
 export const perRowInput = document.getElementById("per-row");
 export const quantityInput = document.getElementById("quantity");
-export const printSingleButton = document.getElementById("print-single-button");
+export const printButton = document.getElementById("print-button");
 export const pageSizeSelect = document.getElementById("page-size");
 export const testPrinterButton = document.getElementById("test-printer-button");
 
@@ -101,8 +104,8 @@ testPrinterButton.addEventListener("click", () => {
 qr_code.addEventListener("input", validateQRInput);
 generateButton.addEventListener("click", createQR);
 
-printButton.addEventListener("click", handleBulkPrint);
-printSingleButton.addEventListener("click", printSingle);
+bulkGenerateButton.addEventListener("click", handleBulkPrint);
+printButton.addEventListener("click", printSingle);
 printQrDetailButton.addEventListener("click", printQRModalTable);
 
 //   Add event listeners for controls to update preview
@@ -136,10 +139,27 @@ perRowInput.addEventListener("input", () => {
 });
 
 // Add file input change handler to reset state
-fileInput.addEventListener("change", () => {
+fileInput.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
   bulkGeneratedQRs = null;
-  printButton.textContent = "Generate Bulk QR";
   previewContainer.innerHTML = "";
+
+  A4PrintButton.disabled = true;
+});
+
+document.getElementById("reset-button").addEventListener("click", () => {
+  bulkGeneratedQRs = null;
+  previewContainer.innerHTML = "";
+
+  fileInput.value = "";
+  tableBody.innerHTML = "";
+  tableHeadRow.innerHTML = "";
+  qr_code.value = "";
+  custom_text.value = "";
+
+  alert("All data has been reset.");
 });
 
 applyColumnsButton.addEventListener("click", () => {

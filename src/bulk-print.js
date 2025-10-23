@@ -5,19 +5,23 @@ import {
   heightInput,
   pageSizeSelect,
   perRowInput,
-  printButton,
+  bulkGenerateButton,
   quantityInput,
   updateBulkGeneratedQRs,
   widthInput,
+  generateButton,
+  testPrinterButton,
+  printButton,
+  A4PrintButton,
 } from "./main.js";
 import { showQRDetailModal } from "./qr-modal.js";
 
 export async function handleBulkPrint() {
   try {
     if (bulkGeneratedQRs) {
-      createPrintView(bulkGeneratedQRs);
-      return;
+      return alert("Bulk QR codes have already been generated.");
     }
+
     const file = fileInput.files[0];
     if (!file) return alert("Please select a file first");
 
@@ -33,8 +37,12 @@ export async function handleBulkPrint() {
     if (!validateColumns(data))
       return alert("File must contain 'qr_code' & 'quantity'");
 
-    printButton.textContent = "Generating...";
+    bulkGenerateButton.textContent = "Generating...";
+    bulkGenerateButton.disabled = true;
     printButton.disabled = true;
+    fileInput.disabled = true;
+    generateButton.disabled = true;
+    testPrinterButton.disabled = true;
 
     const processedData = await Promise.all(
       data.map(async (row) => {
@@ -63,18 +71,20 @@ export async function handleBulkPrint() {
     // bulkGeneratedQRs = processedData;
     updateBulkGeneratedQRs(processedData);
     showQRDetailModal(processedData);
-    document.getElementById("open-print-button").disabled = false;
-    printButton.textContent = "Print Bulk QR Codes";
-    printButton.disabled = false;
-    quantityInput.disabled = true;
+    A4PrintButton.disabled = false;
 
     updateBulkPreview(bulkGeneratedQRs);
   } catch (error) {
     console.error(error);
     alert("Error processing bulk print");
-    printButton.textContent = "Generate Bulk QR";
+  } finally {
+    bulkGenerateButton.textContent = "Generate Bulk QR";
+    bulkGenerateButton.disabled = false;
+    quantityInput.disabled = true;
     printButton.disabled = false;
-    quantityInput.disabled = false;
+    fileInput.disabled = false;
+    generateButton.disabled = false;
+    testPrinterButton.disabled = false;
   }
 }
 
@@ -87,13 +97,30 @@ function validateColumns(data) {
 function readFile(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
-      const workbook = XLSX.read(e.target.result, { type: "binary" });
-      const rows = XLSX.utils.sheet_to_json(
-        workbook.Sheets[workbook.SheetNames[0]]
+
+    reader.onload = function (e) {
+      const data = e.target.result;
+      const workbook = XLSX.read(data, { type: "binary" });
+      const firstSheet = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[firstSheet];
+
+      // Get original headers
+      const headers = XLSX.utils.sheet_to_json(sheet, { header: 1 })[0];
+
+      // Normalize headers: lowercase + replace spaces with underscores
+      const normalizedHeaders = headers.map((h) =>
+        String(h).trim().toLowerCase().replace(/\s+/g, "_")
       );
+
+      // Convert sheet to JSON using normalized headers
+      const rows = XLSX.utils.sheet_to_json(sheet, {
+        header: normalizedHeaders,
+        range: 1,
+      });
+
       resolve(rows);
     };
+
     reader.onerror = reject;
     reader.readAsBinaryString(file);
   });
@@ -234,7 +261,7 @@ export function updateBulkPreview() {
 
   const grid = document.createElement("div");
   grid.style.display = "grid";
-  const perRow = withCustomText ? 1 : 2;
+  const perRow = perRowInput.value || (withCustomText ? 1 : 2);
   perRowInput.value = perRow;
   grid.style.gridTemplateColumns = `repeat(${perRow}, ${widthMm}mm)`;
   grid.style.width = `${widthMm}mm`;
