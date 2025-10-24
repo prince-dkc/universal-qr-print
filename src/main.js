@@ -226,6 +226,7 @@ document.getElementById("reset-button").addEventListener("click", () => {
   qr_code.value = "";
   custom_text.value = "";
   A4PrintButton.disabled = true;
+  printButton.disabled = true;
 
   clearState();
 
