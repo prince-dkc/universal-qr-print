@@ -13,13 +13,28 @@ import {
   testPrinterButton,
   printButton,
   A4PrintButton,
+  saveState,
+  blobToBase64,
 } from "./main.js";
 import { showQRDetailModal } from "./qr-modal.js";
 
+document.addEventListener("DOMContentLoaded", () => {
+  const savedQRs = JSON.parse(localStorage.getItem("bulkGeneratedQRs"));
+  if (savedQRs?.length) {
+    updateBulkGeneratedQRs(savedQRs);
+    updateBulkPreview();
+    A4PrintButton.disabled = false;
+    showQRDetailModal(savedQRs);
+  }
+});
+
 export async function handleBulkPrint() {
   try {
-    if (bulkGeneratedQRs) {
-      return alert("Bulk QR codes have already been generated.");
+    if (bulkGeneratedQRs && bulkGeneratedQRs.length > 0) {
+      const confirmOverwrite = confirm(
+        "Bulk QR codes already exist. Do you want to generate new ones?"
+      );
+      if (!confirmOverwrite) return;
     }
 
     const file = fileInput.files[0];
@@ -28,11 +43,8 @@ export async function handleBulkPrint() {
     const withCustomText = document.getElementById("with-custom-text").checked;
     const data = await readFile(file);
 
-    if (data.length > 500) {
-      return alert(
-        `⚠️ The uploaded file contains ${data.length} rows.\nOnly up to 500 rows are allowed.`
-      );
-    }
+    if (data.length > 500)
+      return alert(`⚠️ File has ${data.length} rows. Max 500 allowed.`);
 
     if (!validateColumns(data))
       return alert("File must contain 'qr_code' & 'quantity'");
@@ -60,9 +72,10 @@ export async function handleBulkPrint() {
         );
         if (!res) throw new Error(`Failed QR for ${row.qr_code}`);
         const blob = await res.blob();
+        const base64 = await blobToBase64(blob);
         return {
           ...row,
-          imageUrl: URL.createObjectURL(blob),
+          imageUrl: base64,
           hasCustomText: withCustomText,
         };
       })
@@ -72,8 +85,9 @@ export async function handleBulkPrint() {
     updateBulkGeneratedQRs(processedData);
     showQRDetailModal(processedData);
     A4PrintButton.disabled = false;
-
     updateBulkPreview(bulkGeneratedQRs);
+
+    saveState();
   } catch (error) {
     console.error(error);
     alert("Error processing bulk print");
@@ -193,6 +207,7 @@ export async function createPrintView(data) {
                 <style>
                     @page {
                         margin: 0;
+                        margin-bottom: 0.1in;
                         padding: 0;
                         width: ${selectedSize.width}mm;
                         height: ${selectedSize.height}mm;
@@ -233,15 +248,6 @@ export async function createPrintView(data) {
     `);
 
   printWindow.document.close();
-
-  // Clean up object URLs after printing
-  printWindow.onafterprint = () => {
-    data.forEach((row) => {
-      if (row.imageUrl) {
-        URL.revokeObjectURL(row.imageUrl);
-      }
-    });
-  };
 
   printWindow.onload = () => {
     printWindow.focus();

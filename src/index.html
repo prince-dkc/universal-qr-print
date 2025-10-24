@@ -233,21 +233,30 @@
           </div>
           <div class="flex items-center gap-4">
             <label for="qr-width">Width (mm)</label>
-            <input
+            <!-- <input
               id="qr-width"
               type="number"
               step="0.1"
               value="50"
               class="bg-gray-200 rounded px-2 py-1 w-20"
-            />
+            /> -->
+            <select id="qr-width" class="bg-gray-200 rounded px-2 py-1">
+              <option value="100" selected>100mm</option>
+              <option value="50">50mm</option>
+              <option value="25">25mm</option>
+            </select>
             <label for="qr-height">Height (mm)</label>
-            <input
+            <!-- <input
               id="qr-height"
               type="number"
               step="0.1"
               value="50"
               class="bg-gray-200 rounded px-2 py-1 w-20"
-            />
+            /> -->
+            <select id="qr-height" class="bg-gray-200 rounded px-2 py-1">
+              <option value="50" selected>50mm</option>
+              <option value="25">25mm</option>
+            </select>
             <label for="per-row">Per row</label>
             <input
               id="per-row"
@@ -261,10 +270,11 @@
               type="number"
               id="quantity"
               value="2"
-              class="bg-gray-200 rounded px-2 py-1 disabled:cursor-not-allowed"
+              class="bg-gray-200 rounded w-20 px-2 py-1 disabled:cursor-not-allowed"
             />
             <button
               id="print-button"
+              disabled
               class="bg-sky-200 rounded px-2 py-1 disabled:cursor-not-allowed"
             >
               Print

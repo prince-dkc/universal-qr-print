@@ -3,22 +3,38 @@ import { createPrintView, updateBulkPreview } from "./bulk-print.js";
 import { BASE_URL, PAGE_SIZES } from "./constants.js";
 import {
   A4PrintButton,
+  blobToBase64,
   bulkGeneratedQRs,
   custom_text,
   heightInput,
   pageSizeSelect,
   perRowInput,
+  printButton,
   qr_code,
   qrPreview,
   quantityInput,
+  saveState,
   updateBulkGeneratedQRs,
   validationMessage,
   widthInput,
 } from "./main.js";
 
-let lastImageUrl = null;
+export let lastImageUrl = null;
 let lastCode = "";
 let lastCustomText = "";
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadState();
+
+  // If there was a previous single QR generated, restore its preview
+  const savedQRs = JSON.parse(localStorage.getItem("bulkGeneratedQRs"));
+  if (!savedQRs || savedQRs.length === 0) {
+    const previewContainer = document.getElementById("qr-codes");
+    if (previewContainer.innerHTML.trim() === "") {
+      updatePreview();
+    }
+  }
+});
 
 export function validateQRInput() {
   const value = qr_code.value.trim();
@@ -60,19 +76,14 @@ export async function createQR() {
       }),
     });
 
-    if (!res) {
+    if (!res.ok) {
       throw new Error(`HTTP error! status: ${res.status}`);
     }
 
     // Get the blob from response
     const qr_blob = await res.blob();
 
-    // Create object URL from blob and store it
-    if (lastImageUrl) {
-      // revoke previous
-      URL.revokeObjectURL(lastImageUrl);
-    }
-    lastImageUrl = URL.createObjectURL(qr_blob);
+    lastImageUrl = await blobToBase64(qr_blob);
     lastCode = value;
     lastCustomText = custom_text.value || "";
 
@@ -92,13 +103,16 @@ export async function createQR() {
     // Update QR preview using the blob URL
     if (qrPreview) {
       qrPreview.src = lastImageUrl;
-      qrPreview.style.width = `${defaultWidth}mm`;
+      qrPreview.style.width = `${widthInput.value}mm`;
       qrPreview.style.height = `${heightInput.value}mm`;
     }
 
     updatePreview();
     updateBulkGeneratedQRs(null);
     A4PrintButton.disabled = true;
+    printButton.disabled = false;
+
+    saveState();
 
     validationMessage.textContent = "";
   } catch (error) {
@@ -131,8 +145,8 @@ export function updatePreview() {
   grid.style.display = "grid";
   grid.style.gridTemplateColumns = `repeat(${perRow}, ${widthMm}mm)`;
   // grid.style.gap = "1rem";
-  // grid.style.marginTop = "0.5mm";
-  grid.style.marginLeft = "1mm";
+  // grid.style.marginBottom = "10mm";
+  // grid.style.marginLeft = "1mm";
   grid.style.alignItems = "center";
   grid.style.justifyItems = "center";
 
@@ -170,13 +184,13 @@ export function updatePageSize() {
 }
 
 export function printSingle() {
-  // if (!lastImageUrl) {
-  //   validationMessage.textContent = "Generate a QR first";
-  //   return;
-  // }
-
   if (bulkGeneratedQRs) {
     createPrintView(bulkGeneratedQRs);
+    return;
+  }
+
+  if (!lastImageUrl) {
+    validationMessage.textContent = "Generate a QR first";
     return;
   }
 
@@ -191,9 +205,11 @@ export function printSingle() {
                 <link rel="stylesheet" href="output.css">
                 <style>
                     @media print {
-                        @page { margin: 0;
-                        width: ${selectedSize.width}mm;
-                        height: ${selectedSize.height}mm;
+                        @page { 
+                          margin: 0;
+                          margin-bottom: 0.1in;
+                          width: ${selectedSize.width}mm;
+                          height: ${selectedSize.height}mm;
                         }
                         body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
                         img { 
@@ -215,11 +231,5 @@ export function printSingle() {
   printWindow.onload = () => {
     printWindow.focus();
     printWindow.print();
-    setTimeout(() => {
-      if (lastImageUrl) {
-        URL.revokeObjectURL(lastImageUrl);
-        lastImageUrl = null;
-      }
-    }, 3000);
   };
 }

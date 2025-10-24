@@ -1,6 +1,7 @@
 import { handleBulkPrint, updateBulkPreview } from "./bulk-print.js";
 import {
   createQR,
+  lastImageUrl,
   printSingle,
   updatePageSize,
   updatePreview,
@@ -8,6 +9,10 @@ import {
 } from "./qr-generation.js";
 import { renderTable, printQRModalTable } from "./qr-modal.js";
 export { BASE_URL, PAGE_SIZES } from "./constants.js";
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadState();
+});
 
 export const previewContainer = document.getElementById("qr-codes");
 export const fileInput = document.getElementById("qr-code-file");
@@ -62,7 +67,7 @@ export const pageSizeSelect = document.getElementById("page-size");
 export const testPrinterButton = document.getElementById("test-printer-button");
 
 testPrinterButton.addEventListener("click", () => {
-  printWindow = window.open("", "_blank");
+  const printWindow = window.open("", "_blank");
 
   printWindow.document.write(`
       <html>
@@ -115,6 +120,14 @@ perRowInput.addEventListener("input", updatePreview);
 quantityInput.addEventListener("input", updatePreview);
 pageSizeSelect.addEventListener("change", updatePageSize);
 
+export function blobToBase64(blob) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.readAsDataURL(blob);
+  });
+}
+
 // Update event listeners for controls to handle bulk preview
 widthInput.addEventListener("input", () => {
   if (bulkGeneratedQRs) {
@@ -149,6 +162,60 @@ fileInput.addEventListener("change", (e) => {
   A4PrintButton.disabled = true;
 });
 
+// ---------- STATE PERSISTENCE HELPERS ----------
+export function saveState() {
+  if (bulkGeneratedQRs) {
+    localStorage.setItem("bulkGeneratedQRs", JSON.stringify(bulkGeneratedQRs));
+  }
+  console.log("lastImageUrl", lastImageUrl);
+  if (lastImageUrl) {
+    const singleQRState = {
+      qr_code: qr_code.value,
+      custom_text: custom_text.value,
+      width: widthInput.value,
+      height: heightInput.value,
+      perRow: perRowInput.value,
+      quantity: quantityInput.value,
+      imageUrl: lastImageUrl,
+    };
+    localStorage.setItem("singleQRState", JSON.stringify(singleQRState));
+  }
+}
+
+export function loadState() {
+  const savedBulk = JSON.parse(localStorage.getItem("bulkGeneratedQRs"));
+  if (savedBulk?.length) {
+    updateBulkGeneratedQRs(savedBulk);
+    updateBulkPreview();
+    showQRDetailModal(savedBulk);
+    A4PrintButton.disabled = false;
+  }
+
+  const savedSingle = JSON.parse(localStorage.getItem("singleQRState"));
+  if (savedSingle) {
+    qr_code.value = savedSingle.qr_code;
+    custom_text.value = savedSingle.custom_text;
+    widthInput.value = savedSingle.width;
+    heightInput.value = savedSingle.height;
+    perRowInput.value = savedSingle.perRow;
+    quantityInput.value = savedSingle.quantity;
+    lastImageUrl = savedSingle.imageUrl;
+
+    if (qrPreview) {
+      qrPreview.src = lastImageUrl;
+      qrPreview.style.width = `${savedSingle.width}mm`;
+      qrPreview.style.height = `${savedSingle.height}mm`;
+    }
+
+    updatePreview();
+  }
+}
+
+export function clearState() {
+  localStorage.removeItem("bulkGeneratedQRs");
+  localStorage.removeItem("singleQRState");
+}
+
 document.getElementById("reset-button").addEventListener("click", () => {
   bulkGeneratedQRs = null;
   previewContainer.innerHTML = "";
@@ -158,6 +225,9 @@ document.getElementById("reset-button").addEventListener("click", () => {
   tableHeadRow.innerHTML = "";
   qr_code.value = "";
   custom_text.value = "";
+  A4PrintButton.disabled = true;
+
+  clearState();
 
   alert("All data has been reset.");
 });
@@ -167,6 +237,7 @@ applyColumnsButton.addEventListener("click", () => {
     (opt) => opt.value
   );
   renderTable(bulkGeneratedQRs);
+  saveState();
 });
 
 downloadTableButton.addEventListener("click", () => {

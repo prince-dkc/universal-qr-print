@@ -41,7 +41,7 @@ const pageSizeSelect = document.getElementById("page-size");
 const testPrinterButton = document.getElementById("test-printer-button");
 
 testPrinterButton.addEventListener("click", () => {
-  printWindow = window.open("", "_blank");
+  const printWindow = window.open("", "_blank");
 
   printWindow.document.write(`
       <html>
@@ -492,6 +492,7 @@ async function createPrintView(data) {
                 <style>
                     @page {
                         margin: 0;
+                        margin-bottom: 0.1in;
                         padding: 0;
                         width: ${selectedSize.width}mm;
                         height: ${selectedSize.height}mm;
@@ -566,6 +567,7 @@ function printSingle() {
                 <style>
                     @media print {
                         @page { margin: 0;
+                        margin-bottom: 0.1in;
                         width: ${selectedSize.width}mm;
                         height: ${selectedSize.height}mm;
                         }
