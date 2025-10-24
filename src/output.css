@@ -1039,6 +1039,10 @@ video {
   cursor: not-allowed;
 }
 
+.disabled\:bg-opacity-50:disabled {
+  --tw-bg-opacity: 0.5;
+}
+
 .disabled\:opacity-50:disabled {
   opacity: 0.5;
 }
