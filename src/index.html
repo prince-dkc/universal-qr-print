@@ -52,6 +52,16 @@
         object-fit: contain;
       }
 
+      th {
+        position: relative;
+      }
+
+      .sort-icon {
+        font-size: 1rem;
+        margin-left: 4px;
+        font-weight: bold;
+      }
+
       /* .gap {
         width: 0.3in;
         height: 2in;
@@ -68,7 +78,7 @@
     </style>
   </head>
   <body>
-    <div class="onprint flex w-screen min-h-screen p-6 bg-gray-100">
+    <div class="onprint flex w-screen min-h-screen h-max p-6 bg-gray-100">
       <div class="flex flex-col gap-6">
         <!-- QR Generation -->
         <div class="flex justify-between items-start gap-6">
@@ -97,7 +107,7 @@
               </div>
               <button
                 id="generate-qr"
-                class="bg-sky-200 self-end w-max rounded px-2 py-1"
+                class="bg-sky-200 self-end w-max rounded px-2 py-1 disabled:cursor-not-allowed"
               >
                 Generate QR
               </button>
@@ -134,6 +144,7 @@
                   id="with-custom-text"
                   value="with-custom-text"
                   name="qr-type"
+                  checked
                 />
                 <label for="with-custom-text">With Custom Text</label>
               </div>
@@ -147,8 +158,8 @@
                 <label for="without-custom-text">Without Custom Text</label>
               </div>
               <button
-                id="bulk-print-button"
-                class="bg-sky-200 rounded px-2 py-1"
+                id="bulk-generate-button"
+                class="bg-sky-200 rounded px-2 py-1 disabled:cursor-not-allowed disabled:bg-opacity-50"
               >
                 Generate Bulk QR
               </button>
@@ -179,18 +190,24 @@
 
         <!-- QR Code Previews -->
         <div class="flex flex-col gap-3">
+          <button
+            id="reset-button"
+            class="bg-red-400 w-max px-2 py-1 rounded disabled:cursor-not-allowed"
+          >
+            Reset All
+          </button>
           <div>
             <p>Tools & Tutorials for printer setup</p>
             <button
               onclick="document.getElementById('setup-modal').classList.remove('hidden')"
-              class="bg-sky-200 px-2 py-1 rounded"
+              class="bg-sky-200 px-2 py-1 rounded disabled:cursor-not-allowed disabled:bg-opacity-50"
             >
               Open Setup Guide
             </button>
           </div>
 
           <button
-            class="bg-sky-200 w-max px-2 py-1 rounded"
+            class="bg-sky-200 w-max px-2 py-1 rounded disabled:cursor-not-allowed disabled:bg-opacity-50"
             id="test-printer-button"
           >
             Test Printer
@@ -202,7 +219,7 @@
             disabled
             class="bg-sky-200 w-max px-2 py-1 rounded disabled:hidden"
           >
-            Open Print
+            A4 Print
           </button>
 
           <h2>QR Codes</h2>
@@ -216,21 +233,30 @@
           </div>
           <div class="flex items-center gap-4">
             <label for="qr-width">Width (mm)</label>
-            <input
+            <!-- <input
               id="qr-width"
               type="number"
               step="0.1"
               value="50"
               class="bg-gray-200 rounded px-2 py-1 w-20"
-            />
+            /> -->
+            <select id="qr-width" class="bg-gray-200 rounded px-2 py-1">
+              <option value="100" selected>100mm</option>
+              <option value="50">50mm</option>
+              <option value="25">25mm</option>
+            </select>
             <label for="qr-height">Height (mm)</label>
-            <input
+            <!-- <input
               id="qr-height"
               type="number"
               step="0.1"
               value="50"
               class="bg-gray-200 rounded px-2 py-1 w-20"
-            />
+            /> -->
+            <select id="qr-height" class="bg-gray-200 rounded px-2 py-1">
+              <option value="50" selected>50mm</option>
+              <option value="25">25mm</option>
+            </select>
             <label for="per-row">Per row</label>
             <input
               id="per-row"
@@ -244,12 +270,12 @@
               type="number"
               id="quantity"
               value="2"
-              class="bg-gray-200 rounded px-2 py-1 disabled:cursor-not-allowed"
+              class="bg-gray-200 rounded w-20 px-2 py-1 disabled:cursor-not-allowed"
             />
             <button
-              id="print-single-button"
+              id="print-button"
               disabled
-              class="bg-sky-200 rounded px-2 py-1 disabled:hidden"
+              class="bg-sky-200 rounded px-2 py-1 disabled:cursor-not-allowed disabled:bg-opacity-50"
             >
               Print
             </button>
@@ -452,7 +478,6 @@
           </button>
           <button
             id="print-qr-detail"
-            onclick="printQRModalTable()"
             disabled
             class="bg-sky-500 text-white px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -463,6 +488,6 @@
     </div>
 
     <!-- load app script after DOM -->
-    <script src="script.js"></script>
+    <script type="module" src="main.js"></script>
   </body>
 </html>

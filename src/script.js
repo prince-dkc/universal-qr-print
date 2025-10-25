@@ -6,7 +6,6 @@ const PAGE_SIZES = {
   SMALL: { width: 25, height: 25 }, // 25mm x 25mm
 };
 
-// document.addEventListener("DOMContentLoaded", () => {
 const fileInput = document.getElementById("qr-code-file");
 const printButton = document.getElementById("bulk-print-button");
 const qr_code = document.getElementById("qr-code");
@@ -42,7 +41,7 @@ const pageSizeSelect = document.getElementById("page-size");
 const testPrinterButton = document.getElementById("test-printer-button");
 
 testPrinterButton.addEventListener("click", () => {
-  printWindow = window.open("", "_blank");
+  const printWindow = window.open("", "_blank");
 
   printWindow.document.write(`
       <html>
@@ -261,8 +260,13 @@ async function handleBulkPrint() {
     }
 
     const withCustomText = document.getElementById("with-custom-text").checked;
-
     const data = await readFile(file);
+
+    if (data.length > 500) {
+      return alert(
+        `⚠️ The uploaded file contains ${data.length} rows.\nOnly up to 500 rows are allowed.`
+      );
+    }
 
     // validate required columns
     if (!validateColumns(data)) {
@@ -488,6 +492,7 @@ async function createPrintView(data) {
                 <style>
                     @page {
                         margin: 0;
+                        margin-bottom: 0.1in;
                         padding: 0;
                         width: ${selectedSize.width}mm;
                         height: ${selectedSize.height}mm;
@@ -562,6 +567,7 @@ function printSingle() {
                 <style>
                     @media print {
                         @page { margin: 0;
+                        margin-bottom: 0.1in;
                         width: ${selectedSize.width}mm;
                         height: ${selectedSize.height}mm;
                         }
@@ -720,17 +726,84 @@ function updatePrintButtonState() {
 }
 
 let sortDirection = {};
-function sortTableByColumn(column, data) {
-  sortDirection[column] = !sortDirection[column];
+function sortTableByColumn(primaryColumn, data) {
+  // Toggle the primary column's sort direction
+  sortDirection[primaryColumn] = !sortDirection[primaryColumn];
+
+  // Define columns to sort by priority
+  // Always put primary first, then secondary by predefined order or remaining columns
+  const allColumns = Object.keys(data[0] || {}).filter(
+    (col) =>
+      ![
+        "qr_code",
+        "quantity",
+        "custom_text",
+        "imageUrl",
+        "hasCustomText",
+      ].includes(col)
+  );
+
+  // Primary column first
+  const priorityColumns = [
+    primaryColumn,
+    ...allColumns.filter((c) => c !== primaryColumn),
+  ];
+
   data.sort((a, b) => {
-    const valA = a[column] ?? "";
-    const valB = b[column] ?? "";
-    return sortDirection[column]
-      ? String(valA).localeCompare(String(valB))
-      : String(valB).localeCompare(String(valA));
+    for (const col of priorityColumns) {
+      let valA = a[col] ?? "";
+      let valB = b[col] ?? "";
+
+      const isPureNumber =
+        /^\d+(\.\d+)?$/.test(valA) && /^\d+(\.\d+)?$/.test(valB);
+
+      let comparison = 0;
+
+      if (isPureNumber) {
+        comparison = parseFloat(valA) - parseFloat(valB);
+      } else {
+        // Fallback: alphanumeric string comparison with numeric support
+        comparison = String(valA).localeCompare(String(valB), undefined, {
+          numeric: true,
+          sensitivity: "base",
+        });
+      }
+
+      if (comparison !== 0) {
+        // Apply primary column direction only for primary
+        return col === primaryColumn
+          ? sortDirection[primaryColumn]
+            ? comparison
+            : -comparison
+          : comparison;
+      }
+    }
+    return 0; // fully equal
   });
 
   renderTable(data);
+
+  updateSortIcons(primaryColumn);
+}
+
+function updateSortIcons(sortedColumn) {
+  const headers = tableHeadRow.querySelectorAll("th");
+
+  headers.forEach((th) => {
+    // Remove existing icon first
+    const existingIcon = th.querySelector(".sort-icon");
+    if (existingIcon) existingIcon.remove();
+
+    const col = th.dataset.column;
+    if (!col) return;
+
+    if (col === sortedColumn) {
+      const icon = document.createElement("span");
+      icon.className = "sort-icon";
+      icon.textContent = sortDirection[sortedColumn] ? "↑" : "↓";
+      th.appendChild(icon);
+    }
+  });
 }
 
 applyColumnsButton.addEventListener("click", () => {
@@ -859,5 +932,3 @@ function printQRModalTable() {
     printWindow.print();
   };
 }
-
-// });
