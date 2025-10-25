@@ -7,6 +7,7 @@ import {
   bulkGeneratedQRs,
   custom_text,
   heightInput,
+  loadState,
   pageSizeSelect,
   perRowInput,
   printButton,
@@ -17,6 +18,7 @@ import {
   updateBulkGeneratedQRs,
   validationMessage,
   widthInput,
+  withTextRadio,
 } from "./main.js";
 
 export let lastImageUrl = null;
@@ -57,7 +59,6 @@ export function validateQRInput() {
 export async function createQR() {
   try {
     const value = qr_code.value.trim();
-    const hasCustomText = custom_text.value.trim() !== "";
 
     if (!value) {
       validationMessage.textContent = "Please enter a QR code";
@@ -71,7 +72,7 @@ export async function createQR() {
       },
       body: JSON.stringify({
         code: qr_code.value.toUpperCase(),
-        qr_without_text: !hasCustomText,
+        qr_without_text: !withTextRadio.checked,
         text_content: custom_text.value,
       }),
     });
@@ -90,13 +91,13 @@ export async function createQR() {
     // printSingleButton.disabled = false;
     quantityInput.disabled = false;
 
-    const defaultWidth = hasCustomText ? "100" : "50";
+    const defaultWidth = withTextRadio.checked ? "100" : "50";
     widthInput.value = defaultWidth;
 
-    perRowInput.value = hasCustomText ? 1 : 2;
+    perRowInput.value = withTextRadio.checked ? 1 : 2;
 
     // Update height to match width for QR without text
-    if (!hasCustomText) {
+    if (!withTextRadio.checked) {
       heightInput.value = "50";
     }
 
