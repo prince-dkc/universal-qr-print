@@ -64,7 +64,7 @@ export async function handleBulkPrint() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              code: row.qr_code,
+              code: row.qr_code.toUpperCase(),
               qr_without_text: !withCustomText,
               text_content: row.custom_text || "",
             }),

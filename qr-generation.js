@@ -70,7 +70,7 @@ export async function createQR() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        code: qr_code.value,
+        code: qr_code.value.toUpperCase(),
         qr_without_text: !hasCustomText,
         text_content: custom_text.value,
       }),
