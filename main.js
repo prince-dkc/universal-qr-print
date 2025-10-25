@@ -7,7 +7,11 @@ import {
   updatePreview,
   validateQRInput,
 } from "./qr-generation.js";
-import { renderTable, printQRModalTable } from "./qr-modal.js";
+import {
+  renderTable,
+  printQRModalTable,
+  showQRDetailModal,
+} from "./qr-modal.js";
 export { BASE_URL, PAGE_SIZES } from "./constants.js";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -39,6 +43,12 @@ export const closeQrDetailModalButton = document.getElementById(
   "close-qr-detail-modal"
 );
 export const printQrDetailButton = document.getElementById("print-qr-detail");
+
+export const withTextRadio = document.getElementById("with-text");
+export const withoutTextRadio = document.getElementById("without-text");
+export const customTextContainer = document.getElementById(
+  "custom-text-container"
+);
 
 export let allCsvColumns = [];
 export let SelectedExtraColumns = [];
@@ -127,6 +137,19 @@ export function blobToBase64(blob) {
     reader.readAsDataURL(blob);
   });
 }
+
+withTextRadio.addEventListener("change", () => {
+  if (withTextRadio.checked) {
+    customTextContainer.classList.remove("hidden");
+  }
+});
+
+withoutTextRadio.addEventListener("change", () => {
+  if (withoutTextRadio.checked) {
+    customTextContainer.classList.add("hidden");
+    document.getElementById("custom-text").value = ""; // clear any previous text
+  }
+});
 
 // Update event listeners for controls to handle bulk preview
 widthInput.addEventListener("input", () => {

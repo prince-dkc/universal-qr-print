@@ -95,7 +95,26 @@
                   class="bg-gray-200 rounded px-2 py-1 uppercase"
                 />
               </div>
-              <div class="flex gap-4">
+              <div class="flex items-center gap-2">
+                <input
+                  type="radio"
+                  id="with-text"
+                  value="with-text"
+                  name="single-qr-type"
+                />
+                <label for="with-text">With Custom Text</label>
+              </div>
+              <div class="flex items-center gap-2">
+                <input
+                  type="radio"
+                  id="without-text"
+                  value="without-text"
+                  name="single-qr-type"
+                  checked
+                />
+                <label for="without-text">Without Custom Text</label>
+              </div>
+              <div id="custom-text-container" class="flex gap-4 hidden">
                 <label for="custom-text"> Custom Text </label>
                 <input
                   type="text"
