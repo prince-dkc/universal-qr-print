@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="output.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/lib/browser.min.js"></script>
-    <title>Document</title>
+    <title>Universal QR Print</title>
 
     <!-- copied print / page CSS from index.html -->
     <style>
@@ -78,78 +78,234 @@
     </style>
   </head>
   <body>
-    <div class="onprint flex w-screen min-h-screen h-max p-6 bg-gray-100">
-      <div class="flex flex-col gap-6">
+    <div class="onprint flex max-w-screen min-h-screen h-max p-6 bg-gray-100">
+      <div class="flex flex-col gap-6 w-full">
+        <!-- Navbar -->
+        <div
+          class="flex justify-between items-center gap-4 py-2 border-b border-gray-600"
+        >
+          <h1 class="text-2xl font-bold">Universal QR Print</h1>
+          <div class="flex gap-2">
+            <button
+              id="open-print-button"
+              disabled
+              onclick="document.getElementById('qr-detail-modal').classList.remove('hidden')"
+              class="bg-sky-200 w-max px-2 py-1 rounded disabled:hidden"
+            >
+              A4 Print
+            </button>
+            <button
+              onclick="document.getElementById('setup-modal').classList.remove('hidden')"
+              class="bg-sky-200 px-2 py-1 rounded disabled:cursor-not-allowed disabled:bg-opacity-50"
+            >
+              Open Setup Guide
+            </button>
+            <button
+              class="bg-sky-200 px-2 py-1 rounded disabled:cursor-not-allowed disabled:bg-opacity-50"
+              id="test-printer-button"
+            >
+              Test Printer
+            </button>
+          </div>
+        </div>
+
+        <!-- Single QR Generation -->
+        <div
+          class="flex gap-4 w-full bg-gray-50 px-4 py-2 border border-gray-600"
+        >
+          <div class="flex flex-col w-[72.5%] gap-2">
+            <div class="flex gap-4">
+              <label for="qr-code"> QR Code </label>
+              <input
+                type="text"
+                id="qr-code"
+                placeholder="Enter a QR Code"
+                value=""
+                class="bg-gray-200 rounded px-2 py-1 uppercase"
+              />
+            </div>
+            <div class="flex items-center gap-2">
+              <input
+                type="radio"
+                id="with-text"
+                value="with-text"
+                name="single-qr-type"
+              />
+              <label for="with-text">With Custom Text</label>
+            </div>
+            <div class="flex items-center gap-2">
+              <input
+                type="radio"
+                id="without-text"
+                value="without-text"
+                name="single-qr-type"
+                checked
+              />
+              <label for="without-text">Without Custom Text</label>
+            </div>
+            <div
+              id="custom-text-container"
+              class="flex items-center gap-4 hidden"
+            >
+              <label for="custom-text"> Custom Text </label>
+              <input
+                type="text"
+                id="custom-text"
+                value=""
+                placeholder="Enter custom text"
+                class="bg-gray-200 text-xl rounded flex-1 px-2 py-1"
+              />
+            </div>
+            <button
+              id="generate-qr"
+              class="bg-sky-200 w-max rounded px-2 py-1 disabled:cursor-not-allowed"
+            >
+              Generate QR
+            </button>
+            <span
+              id="qr-validation-message"
+              class="text-red-500 text-center"
+            ></span>
+          </div>
+
+          <!-- Single QR Instructions -->
+          <div class="text-red-400 text-xl font-semibold">
+            <span class="text-2xl">Instructions</span>
+            <ol class="list-decimal list-inside">
+              <li>Enter a QR code</li>
+              <li>Enter custom text (optional)</li>
+              <li>Click "Generate QR" to generate QR</li>
+              <li>Click "Print" to print QR</li>
+            </ol>
+          </div>
+        </div>
+
         <!-- QR Generation -->
         <div class="flex justify-between items-start gap-6">
-          <!-- Single QR Generation -->
-          <div class="flex gap-4 bg-gray-50 px-4 py-2">
-            <div class="flex flex-col gap-2">
-              <div class="flex justify-between gap-4">
-                <label for="qr-code"> QR Code </label>
-                <input
-                  type="text"
-                  id="qr-code"
-                  placeholder="Enter a QR Code"
-                  value=""
-                  class="bg-gray-200 rounded px-2 py-1 uppercase"
-                />
+          <!-- QR Code Previews -->
+          <div class="flex flex-col gap-3">
+            <div class="flex justify-between gap-4">
+              <div class="flex flex-col gap-3">
+                <button
+                  id="reset-button"
+                  class="bg-red-400 w-max px-2 py-1 rounded disabled:cursor-not-allowed"
+                >
+                  Reset All
+                </button>
+                <!-- <div>
+                  <p>Tools & Tutorials for printer setup</p>
+                  <button
+                    onclick="document.getElementById('setup-modal').classList.remove('hidden')"
+                    class="bg-sky-200 px-2 py-1 rounded disabled:cursor-not-allowed disabled:bg-opacity-50"
+                  >
+                    Open Setup Guide
+                  </button>
+                </div> -->
+
+                <!-- <button
+                  class="bg-sky-200 w-max px-2 py-1 rounded disabled:cursor-not-allowed disabled:bg-opacity-50"
+                  id="test-printer-button"
+                >
+                  Test Printer
+                </button> -->
+
+                <!-- <button
+                  id="open-print-button"
+                  onclick="document.getElementById('qr-detail-modal').classList.remove('hidden')"
+                  disabled
+                  class="bg-sky-200 w-max px-2 py-1 rounded disabled:hidden"
+                >
+                  A4 Print
+                </button> -->
               </div>
-              <div class="flex items-center gap-2">
-                <input
-                  type="radio"
-                  id="with-text"
-                  value="with-text"
-                  name="single-qr-type"
-                />
-                <label for="with-text">With Custom Text</label>
+
+              <div class="text-red-500 flex flex-col text-xl font-semibold">
+                <span class="text-2xl">Print Instructions</span>
+                <ul class="list-disc list-inside">
+                  <li>
+                    Set your Margin and Scale in printer settings to be
+                    <span class="text-red-700">"Default"</span>.
+                  </li>
+                </ul>
+                <span
+                  onclick="document.getElementById('print-instruction-image').classList.remove('hidden'); console.log('clicked')"
+                  class="self-end text-base cursor-pointer text-blue-400 underline"
+                >
+                  See image here
+                </span>
               </div>
-              <div class="flex items-center gap-2">
-                <input
-                  type="radio"
-                  id="without-text"
-                  value="without-text"
-                  name="single-qr-type"
-                  checked
-                />
-                <label for="without-text">Without Custom Text</label>
-              </div>
-              <div id="custom-text-container" class="flex gap-4 hidden">
-                <label for="custom-text"> Custom Text </label>
-                <input
-                  type="text"
-                  id="custom-text"
-                  value=""
-                  placeholder="Enter custom text"
-                  class="bg-gray-200 rounded px-2 py-1"
-                />
-              </div>
-              <button
-                id="generate-qr"
-                class="bg-sky-200 self-end w-max rounded px-2 py-1 disabled:cursor-not-allowed"
-              >
-                Generate QR
-              </button>
-              <span
-                id="qr-validation-message"
-                class="text-red-500 text-center"
-              ></span>
             </div>
 
-            <!-- Single QR Instructions -->
-            <div class="text-red-400">
-              <span>Instructions</span>
-              <ul class="list-disc list-inside">
-                <li>Enter a QR code</li>
-                <li>Enter custom text (optional)</li>
-                <li>Click "Generate QR" to generate QR</li>
-                <li>Click "Print" to print QR</li>
-              </ul>
+            <h2>QR Codes</h2>
+            <div>
+              <label for="page-size">Page Size</label>
+              <select id="page-size" class="bg-gray-200 rounded px-2 py-1">
+                <option value="LARGE">100mm x 50mm</option>
+                <option value="MEDIUM">100mm x 25mm</option>
+                <option value="SMALL">25mm x 25mm</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-4">
+              <label for="qr-width">Width (mm)</label>
+              <!-- <input
+                id="qr-width"
+                type="number"
+                step="0.1"
+                value="50"
+                class="bg-gray-200 rounded px-2 py-1 w-20"
+              /> -->
+              <select id="qr-width" class="bg-gray-200 rounded px-2 py-1">
+                <option value="100" selected>100mm</option>
+                <option value="50">50mm</option>
+                <option value="25">25mm</option>
+              </select>
+              <label for="qr-height">Height (mm)</label>
+              <!-- <input
+                id="qr-height"
+                type="number"
+                step="0.1"
+                value="50"
+                class="bg-gray-200 rounded px-2 py-1 w-20"
+              /> -->
+              <select id="qr-height" class="bg-gray-200 rounded px-2 py-1">
+                <option value="50" selected>50mm</option>
+                <option value="25">25mm</option>
+              </select>
+              <label for="per-row">Per row</label>
+              <input
+                id="per-row"
+                type="number"
+                min="1"
+                value="2"
+                class="bg-gray-200 rounded px-2 py-1 w-16"
+              />
+              <label for="quantity">Number of QR codes to print: </label>
+              <input
+                type="number"
+                id="quantity"
+                value="2"
+                class="bg-gray-200 rounded w-20 px-2 py-1 disabled:cursor-not-allowed"
+              />
+              <button
+                id="print-button"
+                disabled
+                class="bg-sky-200 rounded px-2 py-1 disabled:cursor-not-allowed disabled:bg-opacity-50"
+              >
+                Print
+              </button>
+            </div>
+
+            <div id="qr-codes">
+              <img
+                id="qr-preview"
+                class="w-[50mm] h-[50mm] border border-gray-300"
+                alt="QR Code Preview"
+              />
             </div>
           </div>
 
           <!-- Bulk QR Generation -->
-          <div class="flex gap-4 bg-gray-50 px-4 py-2">
+          <div class="flex gap-4 bg-gray-50 px-4 py-2 border border-gray-600">
             <div class="flex flex-col gap-2">
               <input
                 type="file"
@@ -185,9 +341,9 @@
             </div>
 
             <!-- Bulk QR Instructions -->
-            <div class="text-red-400">
-              <span>Instructions</span>
-              <ul class="list-disc list-inside">
+            <div class="text-red-400 text-xl font-semibold">
+              <span class="text-2xl">Instructions</span>
+              <ol class="list-decimal list-inside">
                 <li>Select a file containing QR codes</li>
                 <li>Select QR type (with or without custom text)</li>
                 <li>The order of QR codes will be same as in the file</li>
@@ -202,110 +358,8 @@
                 </li>
                 <li>Click "Generate Bulk QR" to generate QRs</li>
                 <li>Click "Print Bulk QR" to print QRs</li>
-              </ul>
+              </ol>
             </div>
-          </div>
-        </div>
-
-        <!-- QR Code Previews -->
-        <div class="flex flex-col gap-3">
-          <button
-            id="reset-button"
-            class="bg-red-400 w-max px-2 py-1 rounded disabled:cursor-not-allowed"
-          >
-            Reset All
-          </button>
-          <div>
-            <p>Tools & Tutorials for printer setup</p>
-            <button
-              onclick="document.getElementById('setup-modal').classList.remove('hidden')"
-              class="bg-sky-200 px-2 py-1 rounded disabled:cursor-not-allowed disabled:bg-opacity-50"
-            >
-              Open Setup Guide
-            </button>
-          </div>
-
-          <button
-            class="bg-sky-200 w-max px-2 py-1 rounded disabled:cursor-not-allowed disabled:bg-opacity-50"
-            id="test-printer-button"
-          >
-            Test Printer
-          </button>
-
-          <button
-            id="open-print-button"
-            onclick="document.getElementById('qr-detail-modal').classList.remove('hidden')"
-            disabled
-            class="bg-sky-200 w-max px-2 py-1 rounded disabled:hidden"
-          >
-            A4 Print
-          </button>
-
-          <h2>QR Codes</h2>
-          <div>
-            <label for="page-size">Page Size</label>
-            <select id="page-size" class="bg-gray-200 rounded px-2 py-1">
-              <option value="LARGE">100mm x 50mm</option>
-              <option value="MEDIUM">100mm x 25mm</option>
-              <option value="SMALL">25mm x 25mm</option>
-            </select>
-          </div>
-          <div class="flex items-center gap-4">
-            <label for="qr-width">Width (mm)</label>
-            <!-- <input
-              id="qr-width"
-              type="number"
-              step="0.1"
-              value="50"
-              class="bg-gray-200 rounded px-2 py-1 w-20"
-            /> -->
-            <select id="qr-width" class="bg-gray-200 rounded px-2 py-1">
-              <option value="100" selected>100mm</option>
-              <option value="50">50mm</option>
-              <option value="25">25mm</option>
-            </select>
-            <label for="qr-height">Height (mm)</label>
-            <!-- <input
-              id="qr-height"
-              type="number"
-              step="0.1"
-              value="50"
-              class="bg-gray-200 rounded px-2 py-1 w-20"
-            /> -->
-            <select id="qr-height" class="bg-gray-200 rounded px-2 py-1">
-              <option value="50" selected>50mm</option>
-              <option value="25">25mm</option>
-            </select>
-            <label for="per-row">Per row</label>
-            <input
-              id="per-row"
-              type="number"
-              min="1"
-              value="2"
-              class="bg-gray-200 rounded px-2 py-1 w-16"
-            />
-            <label for="quantity">Number of QR codes to print: </label>
-            <input
-              type="number"
-              id="quantity"
-              value="2"
-              class="bg-gray-200 rounded w-20 px-2 py-1 disabled:cursor-not-allowed"
-            />
-            <button
-              id="print-button"
-              disabled
-              class="bg-sky-200 rounded px-2 py-1 disabled:cursor-not-allowed disabled:bg-opacity-50"
-            >
-              Print
-            </button>
-          </div>
-
-          <div id="qr-codes">
-            <img
-              id="qr-preview"
-              class="w-[50mm] h-[50mm] border border-gray-300"
-              alt="QR Code Preview"
-            />
           </div>
         </div>
       </div>
@@ -408,7 +462,9 @@
                 </div>
               </div>
               <div class="space-y-2">
-                <p class="font-medium text-2xl">How to generate QR without text</p>
+                <p class="font-medium text-2xl">
+                  How to generate QR without text
+                </p>
                 <div class="aspect-video bg-gray-100">
                   <video
                     width="100%"
@@ -515,6 +571,27 @@
             Print
           </button>
         </div>
+      </div>
+    </div>
+
+    <!-- Print Instructions Image -->
+    <div
+      id="print-instruction-image"
+      class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/75"
+    >
+      <div class="relative max-w-[80%] max-h-full p-4">
+        <button
+          onclick="document.getElementById('print-instruction-image').classList.add('hidden')"
+          class="absolute top-2 right-2 z-10 bg-red-400 text-white rounded-full w-8 h-8 flex items-center justify-center cursor-pointer"
+        >
+          ×
+        </button>
+
+        <img
+          src="./assets/print_instruction.png"
+          alt="Print Instructions"
+          class="max-h-[80%] object-contain"
+        />
       </div>
     </div>
 
