@@ -680,6 +680,10 @@ video {
   height: 2rem;
 }
 
+.h-\[100px\] {
+  height: 100px;
+}
+
 .h-\[50mm\] {
   height: 50mm;
 }
@@ -723,6 +727,10 @@ video {
 
 .w-8 {
   width: 2rem;
+}
+
+.w-\[200px\] {
+  width: 200px;
 }
 
 .w-\[50mm\] {

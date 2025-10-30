@@ -227,12 +227,19 @@
                     <span class="text-red-700">"Default"</span>.
                   </li>
                 </ul>
-                <span
-                  onclick="document.getElementById('print-instruction-image').classList.remove('hidden'); console.log('clicked')"
-                  class="self-end text-base cursor-pointer text-blue-400 underline"
+                <div
+                  class="flex flex-col self-end cursor-pointer"
+                  onclick="document.getElementById('print-instruction-image').classList.remove('hidden')"
                 >
-                  See image here
-                </span>
+                  <img
+                    src="./assets/print_instruction.png"
+                    alt="Print Instructions"
+                    class="w-[200px] h-[100px] object-contain"
+                  />
+                  <span class="self-end text-base text-blue-400 underline">
+                    See full image
+                  </span>
+                </div>
               </div>
             </div>
 
