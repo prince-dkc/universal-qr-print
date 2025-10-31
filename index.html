@@ -114,14 +114,14 @@
           class="flex gap-4 w-full bg-gray-50 px-4 py-2 border border-gray-600"
         >
           <div class="flex flex-col w-[72.5%] gap-2">
-            <div class="flex gap-4">
-              <label for="qr-code"> QR Code </label>
+            <div class="flex gap-4 items-center">
+              <label for="qr-code"> QR Code Number </label>
               <input
                 type="text"
                 id="qr-code"
-                placeholder="Enter a QR Code"
+                placeholder="Enter a QR Code number"
                 value=""
-                class="bg-gray-200 rounded px-2 py-1 uppercase"
+                class="bg-gray-200 rounded w-max px-2 py-1 uppercase placeholder:normal-case"
               />
             </div>
             <div class="flex items-center gap-2">
@@ -172,7 +172,7 @@
           <div class="text-red-400 text-xl font-semibold">
             <span class="text-2xl">Instructions</span>
             <ol class="list-decimal list-inside">
-              <li>Enter a QR code</li>
+              <li>Enter a QR code number</li>
               <li>Enter custom text (optional)</li>
               <li>Click "Generate QR" to generate QR</li>
               <li>Click "Print" to print QR</li>
@@ -237,7 +237,7 @@
                     class="w-[200px] h-[100px] object-contain"
                   />
                   <span class="self-end text-base text-blue-400 underline">
-                    See full image
+                    See full image here
                   </span>
                 </div>
               </div>
@@ -351,7 +351,7 @@
             <div class="text-red-400 text-xl font-semibold">
               <span class="text-2xl">Instructions</span>
               <ol class="list-decimal list-inside">
-                <li>Select a file containing QR codes</li>
+                <li>Select a file containing QR code numbers</li>
                 <li>Select QR type (with or without custom text)</li>
                 <li>The order of QR codes will be same as in the file</li>
                 <li>
