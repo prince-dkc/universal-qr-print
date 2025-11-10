@@ -43,8 +43,12 @@ export async function handleBulkPrint() {
     const withCustomText = document.getElementById("with-custom-text").checked;
     const data = await readFile(file);
 
-    if (data.length > 500)
-      return alert(`⚠️ File has ${data.length} rows. Max 500 allowed.`);
+    if (data.length > 1000)
+      return alert(`⚠️ File has ${data.length} rows. Max 1000 rows allowed.`);
+    else if (data.length > 500)
+      alert(
+        `⚠️ File has ${data.length} rows. It could take a while to generate.`
+      );
 
     if (!validateColumns(data))
       return alert("File must contain 'qr_code' & 'quantity'");
