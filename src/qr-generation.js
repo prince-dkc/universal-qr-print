@@ -22,6 +22,10 @@ import {
 } from "./main.js";
 
 export let lastImageUrl = null;
+export const setLastImageUrl = (url) => {
+  lastImageUrl = url;
+};
+
 let lastCode = "";
 let lastCustomText = "";
 
@@ -37,6 +41,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 });
+
+export function updateURLParams() {
+  const data = {
+    code: qr_code.value.trim(),
+    text: custom_text.value.trim(),
+    withText: withTextRadio.checked,
+    width: widthInput.value,
+    height: heightInput.value,
+    quantity: quantityInput.value,
+    pageSizeSelect: pageSizeSelect.value,
+    perRow: perRowInput.value,
+  };
+
+  const encoded = encodeURIComponent(JSON.stringify(data));
+  const newUrl = `${window.location.origin}${window.location.pathname}?data=${encoded}`;
+  window.history.replaceState({}, "", newUrl);
+}
 
 export function validateQRInput() {
   const value = qr_code.value.trim();
@@ -91,14 +112,17 @@ export async function createQR() {
     // printSingleButton.disabled = false;
     quantityInput.disabled = false;
 
-    const defaultWidth = withTextRadio.checked ? "100" : "50";
-    widthInput.value = defaultWidth;
+    // Set default values if not provided
+    if (!widthInput.value || isNaN(parseFloat(widthInput.value))) {
+      widthInput.value = withTextRadio.checked ? "100" : "50";
+    }
 
-    perRowInput.value = withTextRadio.checked ? 1 : 2;
+    if (!heightInput.value || isNaN(parseFloat(heightInput.value))) {
+      heightInput.value = withTextRadio.checked ? "50" : "25";
+    }
 
-    // Update height to match width for QR without text
-    if (!withTextRadio.checked) {
-      heightInput.value = "50";
+    if (!perRowInput.value || isNaN(parseInt(perRowInput.value))) {
+      perRowInput.value = withTextRadio.checked ? 1 : 2;
     }
 
     // Update QR preview using the blob URL
@@ -108,6 +132,7 @@ export async function createQR() {
       qrPreview.style.height = `${heightInput.value}mm`;
     }
 
+    updateURLParams();
     updatePreview();
     updateBulkGeneratedQRs(null);
     A4PrintButton.disabled = true;
@@ -134,8 +159,8 @@ export function updatePreview() {
   const defaultWidth = hasCustomText ? "100" : "50";
   const defaultHeight = hasCustomText ? "50" : "25";
   const defaultPerRow = hasCustomText ? 1 : 2;
-  const widthMm = parseFloat(widthInput?.value) || defaultWidth;
-  const heightMm = parseFloat(heightInput?.value) || defaultHeight;
+  const widthMm = parseFloat(widthInput?.value || defaultWidth);
+  const heightMm = parseFloat(heightInput?.value || defaultHeight);
   const perRow = Math.max(1, parseInt(perRowInput?.value, 10) || defaultPerRow);
 
   // Clear previous preview

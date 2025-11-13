@@ -3,8 +3,10 @@ import {
   createQR,
   lastImageUrl,
   printSingle,
+  setLastImageUrl,
   updatePageSize,
   updatePreview,
+  updateURLParams,
   validateQRInput,
 } from "./qr-generation.js";
 import {
@@ -15,6 +17,29 @@ import {
 export { BASE_URL, PAGE_SIZES } from "./constants.js";
 
 document.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("data")) {
+    try {
+      const data = JSON.parse(decodeURIComponent(params.get("data")));
+      console.log("Loaded from URL:", data);
+
+      qr_code.value = data.code || "";
+      custom_text.value = data.text || "";
+      widthInput.value = data.width || "50";
+      heightInput.value = data.height || "50";
+      perRowInput.value = data.perRow || "2";
+      quantityInput.value = data.quantity || "2";
+      withTextRadio.checked = !!data.withText;
+
+      updatePreview(); // reflect sizes visually
+      createQR(); // generate the actual QR
+
+      return; // ✅ stop here, don't apply localStorage overrides
+    } catch (err) {
+      console.error("Invalid data in URL:", err);
+    }
+  }
+
   loadState();
 });
 
@@ -130,6 +155,22 @@ perRowInput.addEventListener("input", updatePreview);
 quantityInput.addEventListener("input", updatePreview);
 pageSizeSelect.addEventListener("change", updatePageSize);
 
+[widthInput, heightInput, perRowInput, quantityInput, pageSizeSelect].forEach(
+  (el) => {
+    el.addEventListener("change", updateURLParams);
+  }
+);
+
+export function addQueryParam(key, value) {
+  const currentUrl = new URL(window.location.href);
+  const searchParams = currentUrl.searchParams;
+
+  searchParams.set(key, value);
+
+  currentUrl.search = searchParams.toString();
+  history.pushState(null, "", currentUrl.toString());
+}
+
 export function blobToBase64(blob) {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -222,7 +263,7 @@ export function loadState() {
     heightInput.value = savedSingle.height;
     perRowInput.value = savedSingle.perRow;
     quantityInput.value = savedSingle.quantity;
-    lastImageUrl = savedSingle.imageUrl;
+    setLastImageUrl(savedSingle.imageUrl);
 
     if (qrPreview) {
       qrPreview.src = lastImageUrl;
